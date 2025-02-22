@@ -6,11 +6,11 @@ const formatNumberWithSymbol = (num, symbol = "_") => {
   for (let i = 0; i < TOTAL_CHUNKS_PLUS_ONE; i++) {
     if (i + 1 !== TOTAL_CHUNKS_PLUS_ONE)
       formattedChunks = formattedChunks.concat(
-        reversedDigits.slice(i * 3, (i + 1) * 3).concat(symbol)
+        reversedDigits.slice(i * 3, (i + 1) * 3).concat(symbol),
       );
     else
       formattedChunks = formattedChunks.concat(
-        reversedDigits.slice(i * 3, (i + 1) * 3)
+        reversedDigits.slice(i * 3, (i + 1) * 3),
       );
   }
   return formattedChunks.reverse().join("");

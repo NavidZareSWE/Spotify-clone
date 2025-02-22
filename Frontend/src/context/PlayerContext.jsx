@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import { useRef } from "react";
-import { songsData } from "../assets/assets";
+import axios from "axios";
 
 export const PlayerContext = createContext();
 
@@ -8,6 +8,10 @@ const PlayerContextProvider = (props) => {
   const audioRef = useRef();
   const seekBg = useRef();
   const seekBar = useRef();
+
+  const BACKEND_URL = "http://localhost:3000";
+  const [songsData, setSongsData] = useState([]);
+  const [albumsData, setAlbumsData] = useState([]);
   const [track, setTrack] = useState(songsData[0]);
   const [playStatus, setPlayStatus] = useState(false);
   const [time, setTime] = useState({
@@ -29,24 +33,30 @@ const PlayerContextProvider = (props) => {
     setPlayStatus(false);
   };
   const playWithId = async (id) => {
-    await setTrack(songsData.find((item) => item.id === id));
+    await songsData.map((item) => {
+      if (id === item._id) setTrack(item);
+    });
     await audioRef.current.play();
     setPlayStatus(true);
   };
 
   const previous = async () => {
-    if (track.id > 0) {
-      await setTrack(songsData[track.id - 1]);
-      await audioRef.current.play();
-      setPlayStatus(true);
-    }
+    songsData.map(async (item, index) => {
+      if (track._id === item._id && index > 0) {
+        await setTrack(songsData[index - 1]);
+        await audioRef.current.play();
+        setPlayStatus(true);
+      }
+    });
   };
   const next = async () => {
-    if (track.id < songsData.length - 1) {
-      await setTrack(songsData[track.id + 1]);
-      await audioRef.current.play();
-      setPlayStatus(true);
-    }
+    songsData.map(async (item, index) => {
+      if (track._id === item._id && index < songsData.length) {
+        await setTrack(songsData[index + 1]);
+        await audioRef.current.play();
+        setPlayStatus(true);
+      }
+    });
   };
   const seekSong = async (e) => {
     /*The HTMLElement.offsetWidth read-only property returns the layout width of an element as an integer.
@@ -55,7 +65,29 @@ Typically, offsetWidth is a measurement in pixels of the element's CSS width, in
 
 If the element is hidden (for example, by setting style.display on the element or one of its ancestors to "none"), then 0 is returned. */
     audioRef.current.currentTime =
-      (e.nativeEvent.offsetX / seekBg.current.offsetWidth) * audioRef.current.duration;
+      (e.nativeEvent.offsetX / seekBg.current.offsetWidth) *
+      audioRef.current.duration;
+  };
+  const getSongsData = async () => {
+    try {
+      const response = await axios.get(BACKEND_URL + "/api/song/list");
+      if (response.data.success) {
+        setSongsData(response.data.songs);
+        setTrack(response.data.songs[0]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const getAlbumsData = async () => {
+    try {
+      const response = await axios.get(BACKEND_URL + "/api/album/list");
+      if (response.data.success) {
+        setAlbumsData(response.data.albums);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
   useEffect(() => {
     setTimeout(() => {
@@ -65,7 +97,7 @@ If the element is hidden (for example, by setting style.display on the element o
       audioRef.current.ontimeupdate = () => {
         seekBar.current.style.width =
           Math.floor(
-            (audioRef.current.currentTime / audioRef.current.duration) * 100
+            (audioRef.current.currentTime / audioRef.current.duration) * 100,
           ) + "%";
         setTime({
           currentTime: {
@@ -82,6 +114,10 @@ If the element is hidden (for example, by setting style.display on the element o
       };
     }, 1_000);
   }, [audioRef]);
+  useEffect(() => {
+    getSongsData();
+    getAlbumsData();
+  }, []);
 
   const contextValue = {
     audioRef,
@@ -99,6 +135,8 @@ If the element is hidden (for example, by setting style.display on the element o
     previous,
     next,
     seekSong,
+    songsData,
+    albumsData,
   };
   return (
     <PlayerContext.Provider value={contextValue}>

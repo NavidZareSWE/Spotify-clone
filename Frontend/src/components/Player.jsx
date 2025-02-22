@@ -1,5 +1,5 @@
 import { assets } from "../assets/assets";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { PlayerContext } from "../context/PlayerContext";
 
 const Player = () => {
@@ -16,7 +16,7 @@ const Player = () => {
     seekSong,
   } = useContext(PlayerContext);
   // console.log(`${track.desc.slice(0, 12)}...`);
-  return (
+  return track ? (
     <div className="h-[10%] bg-black flex justify-between items-center text-white px-4">
       <div className="hidden lg:flex items-center gap-4">
         <img className="w-12" src={track.image} alt="Song image" />
@@ -75,12 +75,11 @@ const Player = () => {
             {time.currentTime.minute}:{time.currentTime.second}
           </p>
           <div
-                      onClick={seekSong}
+            onClick={seekSong}
             ref={seekBg}
             className="w-[60vw] max-w-[500px] bg-gray-300 rounded-full cursor-pointer"
           >
             <hr
-
               ref={seekBar}
               className="h-1 border-none w-0 bg-green-800 rounded-full"
             />
@@ -101,7 +100,7 @@ const Player = () => {
         <img className="w-4" src={assets.zoom_icon} alt="Zoom" />
       </div>
     </div>
-  );
+  ) : null;
 };
 
 export default Player;
